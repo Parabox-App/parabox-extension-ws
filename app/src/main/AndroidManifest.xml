@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <queries>
+        <package android:name="com.ojhdtapp.parabox" />
+    </queries>
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application
+        android:name=".core.HiltApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ParaboxExtensionExample"
+        tools:targetApi="tiramisu">
+
+        <meta-data
+            android:name="connection_type"
+            android:value="1119" />
+        <meta-data
+            android:name="connection_name"
+            android:value="WS" />
+        <meta-data
+            android:name="author"
+            android:value="Parabox" />
+        <meta-data
+            android:name="description"
+            android:value="Exchange data with private server via Websocket." />
+        <meta-data
+            android:name="plain_text_support"
+            android:value="2" />
+        <meta-data
+            android:name="image_support"
+            android:value="0" />
+        <meta-data
+            android:name="audio_support"
+            android:value="0" />
+        <meta-data
+            android:name="file_support"
+            android:value="0" />
+        <meta-data
+            android:name="at_support"
+            android:value="0" />
+        <meta-data
+            android:name="quote_reply_support"
+            android:value="0" />
+
+        <service
+            android:name=".domain.service.ConnService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.ojhdtapp.parabox.PLUGIN" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ParaboxExtensionExample">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+    </application>
+
+</manifest>
