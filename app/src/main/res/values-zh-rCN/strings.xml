@@ -19,7 +19,7 @@
     <string name="test_send_message">发送测试消息</string>
     <string name="command_success_toast">命令已发送，返回信息：%1$s</string>
     <string name="command_failed_toast">命令发送失败，错误码：%1$s</string>
-    <string name="extension_notice">本插件将允许Parabox通过websocket与私有服务器交换数据，需首先安装主端</string>
+    <string name="extension_notice">本插件将允许 Parabox 通过 websocket 与私有服务器交换数据，需首先安装主端</string>
     <string name="about">关于</string>
     <string name="version">版本</string>
     <string name="done">完成</string>

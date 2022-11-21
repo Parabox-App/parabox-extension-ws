@@ -66,6 +66,12 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
     implementation "com.google.android.material:material:1.8.0-alpha02"
 
+    // gson
+    implementation 'com.google.code.gson:gson:2.10'
+
+    // WebSocket
+    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+
     // Chrome Custom Tab
     implementation "androidx.browser:browser:1.4.0"
 

@@ -13,6 +13,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.lifecycleScope
+import com.google.gson.Gson
 import com.ojhdtapp.parabox.extension.ws.R
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxKey
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxMetadata
@@ -33,13 +34,23 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.java_websocket.client.WebSocketClient
+import org.java_websocket.handshake.ServerHandshake
+import java.lang.Exception
+import java.net.URI
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConnService : ParaboxService() {
+
+    @Inject
+    lateinit var gson: Gson
+
     companion object {
         var connectionType = 0
     }
+
+    private var wsClient: WebSocketClient? = null
 
     override fun customHandleMessage(msg: Message, metadata: ParaboxMetadata) {
         when (msg.what) {
@@ -69,7 +80,12 @@ class ConnService : ParaboxService() {
     }
 
     override suspend fun onSendMessage(dto: SendMessageDto): Boolean {
-        return false
+        if (wsClient == null) {
+            return false
+        } else {
+            wsClient?.send(gson.toJson(dto, SendMessageDto::class.java))
+            return true
+        }
     }
 
     override fun onStartParabox() {
@@ -80,11 +96,42 @@ class ConnService : ParaboxService() {
             if (isForegroundServiceEnabled) {
                 NotificationUtil.startForegroundService(this@ConnService)
             }
-
+            val wsUrl = dataStore.data.first()[DataStoreKeys.WS_URL]
+            if (wsUrl == null) {
+                updateServiceState(ParaboxKey.STATE_ERROR, "请先设置服务器地址")
+                return@launch
+            }
             updateServiceState(
                 ParaboxKey.STATE_LOADING,
                 "尝试启动 Websocket 服务"
             )
+            wsClient = object : WebSocketClient(URI.create(wsUrl)) {
+                override fun onOpen(handshakedata: ServerHandshake?) {
+                    updateServiceState(
+                        ParaboxKey.STATE_RUNNING,
+                        "Websocket 连接正常"
+                    )
+                }
+
+                override fun onMessage(message: String?) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onClose(code: Int, reason: String?, remote: Boolean) {
+                    updateServiceState(
+                        ParaboxKey.STATE_STOP,
+                        "Websocket 连接已断开"
+                    )
+                }
+
+                override fun onError(ex: Exception?) {
+                    ex?.printStackTrace()
+                    updateServiceState(
+                        ParaboxKey.STATE_ERROR,
+                        "Websocket 连接发生错误"
+                    )
+                }
+            }
         }
     }
 
@@ -95,6 +142,7 @@ class ConnService : ParaboxService() {
     override fun onStopParabox() {
         NotificationUtil.stopForegroundService(this)
         updateServiceState(ParaboxKey.STATE_STOP)
+        wsClient?.close()
     }
 
     override fun onCreate() {

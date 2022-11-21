@@ -91,6 +91,27 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    // ws
+    val wsUrlFlow = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { settings ->
+            settings[DataStoreKeys.WS_URL] ?: ""
+        }
+
+    fun setWSUrl(value: String) {
+        viewModelScope.launch {
+            context.dataStore.edit { preferences ->
+                preferences[DataStoreKeys.WS_URL] = value
+            }
+        }
+    }
+
     private val _refreshingKey = mutableStateOf<Int>(0)
     val refreshingKey: State<Int> = _refreshingKey
     fun refreshKey() {

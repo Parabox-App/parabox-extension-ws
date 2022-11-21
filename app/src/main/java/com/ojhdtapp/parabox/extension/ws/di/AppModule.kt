@@ -1,5 +1,9 @@
 package com.ojhdtapp.parabox.extension.ws.di
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.ojhdtapp.parabox.extension.ws.remote.ReceiveMessageDtoJsonDeserializer
+import com.ojhdtapp.paraboxdevelopmentkit.messagedto.ReceiveMessageDto
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,4 +19,13 @@ class AppModule {
 //        Room.databaseBuilder(
 //            app, AppDatabase::class.java, "main_db"
 //        ).build()
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = GsonBuilder()
+        .registerTypeAdapter(
+            ReceiveMessageDto::class.java,
+            ReceiveMessageDtoJsonDeserializer()
+        )
+        .create()
 }

@@ -8,35 +8,14 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +23,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ojhdtapp.parabox.extension.ws.MainActivity
@@ -86,8 +67,108 @@ fun MainScreen(
         mutableStateOf(false)
     }
 
-    var showDialog by remember {
+    var showEditUrlDialog by remember {
         mutableStateOf(false)
+    }
+
+    val wsUrl = viewModel.wsUrlFlow.collectAsState(initial = "")
+
+    if (showEditUrlDialog) {
+        var tempUrl by remember {
+            mutableStateOf(wsUrl.value.split(":").getOrNull(0) ?: "")
+        }
+        var tempPort by remember {
+            mutableStateOf(wsUrl.value.split(":").getOrNull(1) ?: "")
+        }
+        var editUrlError by remember {
+            mutableStateOf(false)
+        }
+        var editPortError by remember {
+            mutableStateOf(false)
+        }
+        AlertDialog(onDismissRequest = { showEditUrlDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (tempUrl.matches("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex())
+                        && tempPort.matches("\\d{1,5}".toRegex())
+                    ) {
+                        viewModel.setWSUrl(buildString {
+                            append(tempUrl)
+                            append(":")
+                            append(tempPort)
+                        })
+                        showEditUrlDialog = false
+                    } else {
+                        if (!tempUrl.matches("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}\$".toRegex()))
+                            editUrlError = true
+                        if (!tempPort.matches("\\d{1,5}".toRegex()))
+                            editPortError = true
+                    }
+                }) {
+                    Text(text = "确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditUrlDialog = false }) {
+                    Text(text = "取消")
+                }
+            },
+            title = {
+                Text(text = "服务器地址")
+            },
+            text = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = "ws://",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = tempUrl,
+                        onValueChange = {
+                            editUrlError = false
+                            tempUrl = it
+                        },
+                        isError = editUrlError,
+                        label = { Text(text = "地址") },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = null
+                        ),
+                        singleLine = true,
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = ":",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier.width(80.dp),
+                        value = tempPort,
+                        onValueChange = {
+                            editUrlError = false
+                            tempPort = it
+                        },
+                        isError = editPortError,
+                        label = { Text(text = "端口") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = null
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -145,7 +226,7 @@ fun MainScreen(
                 MainSwitch(
                     textOff = stringResource(id = R.string.main_switch_off),
                     textOn = stringResource(id = R.string.main_switch_on),
-                    checked = serviceStatus !is ServiceStatus.Stop,
+                    checked = serviceStatus !is ServiceStatus.Stop && serviceStatus !is ServiceStatus.Error,
                     onCheckedChange = {
 
                         if (it) {
@@ -158,7 +239,7 @@ fun MainScreen(
                             }
                         }
                     },
-                    enabled = serviceStatus is ServiceStatus.Stop || serviceStatus is ServiceStatus.Running
+                    enabled = serviceStatus is ServiceStatus.Stop || serviceStatus is ServiceStatus.Running || serviceStatus is ServiceStatus.Error
                 )
             }
             item {
@@ -214,6 +295,11 @@ fun MainScreen(
                     checked = viewModel.foregroundServiceSwitchFlow.collectAsState(initial = true).value,
                     onCheckedChange = viewModel::setForegroundServiceSwitch
                 )
+            }
+            item{
+                NormalPreference(title = "服务器地址", subtitle = wsUrl.value.ifBlank { "未设置" }) {
+                    showEditUrlDialog = true
+                }
             }
             item {
                 PreferencesCategory(text = stringResource(R.string.about))
