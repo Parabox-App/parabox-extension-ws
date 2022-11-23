@@ -71,7 +71,12 @@ fun MainScreen(
         mutableStateOf(false)
     }
 
+    var showEditTokenDialog by remember {
+        mutableStateOf(false)
+    }
+
     val wsUrl = viewModel.wsUrlFlow.collectAsState(initial = "")
+    val wsToken = viewModel.wsTokenFlow.collectAsState(initial = "")
 
     if (showEditUrlDialog) {
         var tempUrl by remember {
@@ -159,6 +164,61 @@ fun MainScreen(
                         label = { Text(text = "端口") },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = null
+                        ),
+                        singleLine = true,
+                    )
+                }
+            }
+        )
+    }
+
+    if(showEditTokenDialog){
+        var tempToken by remember {
+            mutableStateOf(wsToken.value)
+        }
+        var editTokenError by remember {
+            mutableStateOf(false)
+        }
+        AlertDialog(onDismissRequest = { showEditTokenDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (tempToken.matches("^[a-zA-Z0-9]{1,32}\$".toRegex())) {
+                        viewModel.setWSToken(tempToken)
+                        showEditTokenDialog = false
+                    } else {
+                        editTokenError = true
+                    }
+                }) {
+                    Text(text = "确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditTokenDialog = false }) {
+                    Text(text = "取消")
+                }
+            },
+            title = {
+                Text(text = "连接密钥")
+            },
+            text = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = tempToken,
+                        onValueChange = {
+                            editTokenError = false
+                            tempToken = it
+                        },
+                        isError = editTokenError,
+                        label = { Text(text = "Token") },
+                        keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
@@ -299,6 +359,11 @@ fun MainScreen(
             item{
                 NormalPreference(title = "服务器地址", subtitle = wsUrl.value.ifBlank { "未设置" }) {
                     showEditUrlDialog = true
+                }
+            }
+            item{
+                NormalPreference(title = "连接密钥", subtitle = wsToken.value.ifBlank { "由服务器提供的身份验证密钥" }) {
+                    showEditTokenDialog = true
                 }
             }
             item {
