@@ -15,10 +15,14 @@ import com.ojhdtapp.parabox.extension.ws.core.util.DataStoreKeys
 import com.ojhdtapp.parabox.extension.ws.core.util.JsonUtil
 import com.ojhdtapp.parabox.extension.ws.core.util.NotificationUtil
 import com.ojhdtapp.parabox.extension.ws.core.util.dataStore
+import com.ojhdtapp.parabox.extension.ws.data.AppDatabase
+import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
+import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBSendMessageDto
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
@@ -32,6 +36,9 @@ class ConnService : ParaboxService() {
 
     @Inject
     lateinit var gson: Gson
+
+    @Inject
+    lateinit var appDatabase: AppDatabase
 
     companion object {
         var connectionType = 0
@@ -72,15 +79,14 @@ class ConnService : ParaboxService() {
     }
 
     fun onConvertMessageJson(json: String) {
-        val dto = gson.fromJson(json, ReceiveMessageDto::class.java)
+        val dto = gson.fromJson(json, EFBReceiveMessageDto::class.java)
         dto?.also {
             lifecycleScope.launch(Dispatchers.IO) {
+                val chatMappingId = appDatabase.chatMappingDao()
+                    .getChatMappingBySlaveOriginUid(dto.slaveOriginUid)?.id
+                    ?: appDatabase.chatMappingDao().insertChatMapping(dto.getChatMapping())
                 receiveMessage(
-                    dto.copy(
-                        pluginConnection = dto.pluginConnection.copy(
-                            connectionType = ConnService.connectionType
-                        )
-                    )
+                    dto.toReceiveMessageDto(chatMappingId)
                 ) {
                     Log.d("parabox", "Message data payload: $it")
                 }
@@ -124,28 +130,40 @@ class ConnService : ParaboxService() {
         if (wsClient == null) {
             return false
         } else {
-            return dto.contents.map {
-                when (it) {
-                    is PlainText -> {
-                        JsonUtil.wrapJson(
-                            type = "message",
-                            data = gson.toJson(
-                                dto.copy(
-                                    contents = listOf(it)
-                                ), SendMessageDto::class.java
-                            )
-                        ).let {
-                            wsClient?.run {
-                                send(it)
-                                true
-                            } ?: false
+            return withContext(Dispatchers.IO){
+                dto.contents.map {
+                    val chatMapping =
+                        appDatabase.chatMappingDao().getChatMappingById(dto.pluginConnection.id)
+                    if (chatMapping == null) false
+                    else {
+                        val efbDto = EFBSendMessageDto(
+                            content = it,
+                            timestamp = dto.timestamp,
+                            slaveOriginUid = chatMapping.slaveOriginUid,
+                            slaveMsgId = chatMapping.slaveMsgId,
+                            messageId = dto.messageId!!
+                        )
+                        when (it) {
+                            is PlainText -> {
+                                JsonUtil.wrapJson(
+                                    type = "message",
+                                    data = gson.toJson(
+                                        efbDto, EFBSendMessageDto::class.java
+                                    )
+                                ).let {
+                                    wsClient?.run {
+                                        send(it)
+                                        true
+                                    } ?: false
+                                }
+                            }
+                            else -> {
+                                false
+                            }
                         }
                     }
-                    else -> {
-                        false
-                    }
-                }
-            }.all { it }
+                }.all { it }
+            }
         }
     }
 

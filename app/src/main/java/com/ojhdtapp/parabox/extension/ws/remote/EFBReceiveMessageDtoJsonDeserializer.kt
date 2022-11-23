@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
+import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.PluginConnection
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.Profile
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.ReceiveMessageDto
@@ -18,12 +18,12 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.QuoteReply
 import java.lang.reflect.Type
 
-class ReceiveMessageDtoJsonDeserializer : JsonDeserializer<ReceiveMessageDto> {
+class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageDto> {
     override fun deserialize(
         json: JsonElement?,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): ReceiveMessageDto? {
+    ): EFBReceiveMessageDto? {
         return json?.asJsonObject?.let {
             val contents = mutableListOf<MessageContent>()
             if (it.has("contents")) {
@@ -36,7 +36,7 @@ class ReceiveMessageDtoJsonDeserializer : JsonDeserializer<ReceiveMessageDto> {
                 Profile(
                     profileObj.get("name").asString,
                     null,
-                    profileObj.get("id").asLong,
+                    null,
                     null
                 )
             } else null
@@ -45,28 +45,23 @@ class ReceiveMessageDtoJsonDeserializer : JsonDeserializer<ReceiveMessageDto> {
                 Profile(
                     profileObj.get("name").asString,
                     null,
-                    profileObj.get("id").asLong,
+                    null,
                     null
                 )
             } else null
             val timestamp = it.get("timestamp").asLong
-            val messageId = it.get("messageId")?.asLong
-            val pluginConnection = if (it.has("pluginConnection")) {
-                val pluginConnectionObj = it.get("pluginConnection").asJsonObject
-                PluginConnection(
-                    pluginConnectionObj.get("connectionType").asInt,
-                    pluginConnectionObj.get("sendTargetType").asInt,
-                    pluginConnectionObj.get("id").asLong
-                )
-            } else null
-            if (profile != null && subjectProfile != null && pluginConnection != null) {
-                ReceiveMessageDto(
+            val chatType = it.get("chatType").asInt
+            val slaveOriginUid = it.get("slaveOriginUid").asString
+            val slaveMsgId = it.get("slaveMsgId").asString
+            if (profile != null && subjectProfile != null) {
+                EFBReceiveMessageDto(
                     contents,
                     profile,
                     subjectProfile,
                     timestamp,
-                    messageId,
-                    pluginConnection
+                    chatType,
+                    slaveOriginUid,
+                    slaveMsgId
                 )
             } else null
         }
