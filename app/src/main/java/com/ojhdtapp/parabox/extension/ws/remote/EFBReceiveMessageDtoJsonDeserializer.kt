@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBProfile
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.PluginConnection
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.Profile
@@ -33,20 +34,16 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
             }
             val profile = if (it.has("profile")) {
                 val profileObj = it.get("profile").asJsonObject
-                Profile(
+                EFBProfile(
                     profileObj.get("name").asString,
-                    null,
-                    null,
                     null
                 )
             } else null
             val subjectProfile = if (it.has("subjectProfile")) {
                 val profileObj = it.get("subjectProfile").asJsonObject
-                Profile(
+                EFBProfile(
                     profileObj.get("name").asString,
-                    null,
-                    null,
-                    null
+                    profileObj.get("avatar").asString
                 )
             } else null
             val timestamp = it.get("timestamp").asLong

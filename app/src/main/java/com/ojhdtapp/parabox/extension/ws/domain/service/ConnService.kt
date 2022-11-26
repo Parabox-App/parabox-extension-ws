@@ -86,7 +86,7 @@ class ConnService : ParaboxService() {
                     .getChatMappingBySlaveOriginUid(dto.slaveOriginUid)?.id
                     ?: appDatabase.chatMappingDao().insertChatMapping(dto.getChatMapping())
                 receiveMessage(
-                    dto.toReceiveMessageDto(chatMappingId)
+                    dto.toReceiveMessageDto(baseContext, chatMappingId)
                 ) {
                     Log.d("parabox", "Message data payload: $it")
                 }

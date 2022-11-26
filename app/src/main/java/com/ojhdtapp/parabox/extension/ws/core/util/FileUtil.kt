@@ -21,6 +21,11 @@ import kotlin.math.roundToInt
 
 object FileUtil {
 
+    fun byteStr2Bitmap(byteStr: String): Bitmap? {
+        val bytes = Base64.getDecoder().decode(byteStr)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
     fun Bitmap.getCircledBitmap(): Bitmap {
         val output = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
@@ -32,45 +37,6 @@ object FileUtil {
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         canvas.drawBitmap(this, rect, rect, paint)
         return output
-    }
-
-    fun getAppIcon(context: Context, packageName: String): Bitmap? {
-        try {
-            val drawable = context.packageManager.getApplicationIcon(packageName)
-            if (drawable is BitmapDrawable) {
-                return drawable.bitmap
-            } else if (drawable is AdaptiveIconDrawable) {
-                val drr = arrayOfNulls<Drawable>(2)
-                drr[0] = drawable.background
-                drr[1] = drawable.foreground
-                val layerDrawable = LayerDrawable(drr)
-                val width = layerDrawable.intrinsicWidth
-                val height = layerDrawable.intrinsicHeight
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                layerDrawable.setBounds(0, 0, canvas.width, canvas.height)
-                layerDrawable.draw(canvas)
-                return bitmap
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return null
-    }
-
-    fun getSmallIcon(context: Context, pkgName: String?, id: Int): Bitmap? {
-        var smallIcon: Bitmap? = null
-        val remotePkgContext: Context
-        try {
-            remotePkgContext = context.createPackageContext(pkgName, 0)
-            val drawable = remotePkgContext.resources.getDrawable(id)
-            if (drawable != null) {
-                smallIcon = (drawable as BitmapDrawable).bitmap
-            }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-        return smallIcon
     }
 
     fun getUriFromBitmap(context: Context, bm: Bitmap, name: String): Uri? {
