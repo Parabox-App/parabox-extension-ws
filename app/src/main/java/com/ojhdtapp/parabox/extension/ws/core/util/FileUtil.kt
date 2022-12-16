@@ -7,12 +7,10 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import androidx.core.content.FileProvider
 import com.ojhdtapp.parabox.extension.ws.BuildConfig
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
+import java.io.*
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -21,6 +19,19 @@ import kotlin.math.roundToInt
 
 
 object FileUtil {
+    fun uri2ByteStr(context: Context, uri: Uri): String?{
+        with(context){
+            val inputPFD: ParcelFileDescriptor? =
+                contentResolver.openFileDescriptor(uri, "r")
+            val fd = inputPFD!!.fileDescriptor
+            val inputStream = FileInputStream(fd)
+            inputStream.use {
+                val bytes = it.readBytes()
+                return Base64.getEncoder().encodeToString(bytes)
+            }
+            inputPFD.close()
+        }
+    }
 
     fun byteStr2Bitmap(byteStr: String): Bitmap? {
         val bytes = Base64.getDecoder().decode(byteStr)

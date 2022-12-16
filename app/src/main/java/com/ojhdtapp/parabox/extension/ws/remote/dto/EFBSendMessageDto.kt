@@ -1,9 +1,9 @@
 package com.ojhdtapp.parabox.extension.ws.remote.dto
 
-import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.MessageContent
+import com.ojhdtapp.parabox.extension.ws.remote.message_content.EFBMessageContent
 
 data class EFBSendMessageDto(
-    val content: MessageContent,
+    val content: EFBMessageContent,
     val timestamp: Long,
     val slaveOriginUid: String,
     val slaveMsgId: String,

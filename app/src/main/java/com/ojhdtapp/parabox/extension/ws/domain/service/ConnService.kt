@@ -18,6 +18,7 @@ import com.ojhdtapp.parabox.extension.ws.core.util.dataStore
 import com.ojhdtapp.parabox.extension.ws.data.AppDatabase
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBSendMessageDto
+import com.ojhdtapp.parabox.extension.ws.remote.message_content.toEFBMessageContent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -130,39 +131,44 @@ class ConnService : ParaboxService() {
         if (wsClient == null) {
             return false
         } else {
-            return withContext(Dispatchers.IO){
-                dto.contents.map {
-                    val chatMapping =
-                        appDatabase.chatMappingDao().getChatMappingById(dto.pluginConnection.id)
-                    if (chatMapping == null) false
-                    else {
-                        val efbDto = EFBSendMessageDto(
-                            content = it,
-                            timestamp = dto.timestamp,
-                            slaveOriginUid = chatMapping.slaveOriginUid,
-                            slaveMsgId = chatMapping.slaveMsgId,
-                            messageId = dto.messageId!!
-                        )
-                        when (it) {
-                            is PlainText -> {
-                                JsonUtil.wrapJson(
-                                    type = "message",
-                                    data = gson.toJson(
-                                        efbDto, EFBSendMessageDto::class.java
-                                    )
-                                ).let {
-                                    wsClient?.run {
-                                        send(it)
-                                        true
-                                    } ?: false
+            return withContext(Dispatchers.IO) {
+                try {
+                    dto.contents.map {
+                        val chatMapping =
+                            appDatabase.chatMappingDao().getChatMappingById(dto.pluginConnection.id)
+                        if (chatMapping == null) false
+                        else {
+                            val efbDto = EFBSendMessageDto(
+                                content = it.toEFBMessageContent(baseContext),
+                                timestamp = dto.timestamp,
+                                slaveOriginUid = chatMapping.slaveOriginUid,
+                                slaveMsgId = chatMapping.slaveMsgId,
+                                messageId = dto.messageId!!
+                            )
+                            when (it) {
+                                is PlainText -> {
+                                    JsonUtil.wrapJson(
+                                        type = "message",
+                                        data = gson.toJson(
+                                            efbDto, EFBSendMessageDto::class.java
+                                        )
+                                    ).let {
+                                        wsClient?.run {
+                                            send(it)
+                                            true
+                                        } ?: false
+                                    }
+                                }
+                                else -> {
+                                    false
                                 }
                             }
-                            else -> {
-                                false
-                            }
                         }
-                    }
-                }.all { it }
+                    }.all { it }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    false
+                }
             }
         }
     }
