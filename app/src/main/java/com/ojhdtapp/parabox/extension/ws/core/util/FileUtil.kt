@@ -9,6 +9,7 @@ import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.ojhdtapp.parabox.extension.ws.BuildConfig
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -24,6 +25,20 @@ object FileUtil {
     fun byteStr2Bitmap(byteStr: String): Bitmap? {
         val bytes = Base64.getDecoder().decode(byteStr)
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    fun byteStr2File(context: Context, byteStr: String, fileName: String): File {
+        val bytes = Base64.getDecoder().decode(byteStr)
+        val targetDir = File(context.externalCacheDir, "file")
+        if (!targetDir.exists()) targetDir.mkdirs()
+        val tempFile =
+            File(targetDir, fileName)
+        ByteArrayInputStream(bytes).use { bis ->
+            FileOutputStream(tempFile).use { fos ->
+                bis.copyTo(fos, DEFAULT_BUFFER_SIZE)
+            }
+        }
+        return tempFile
     }
 
     fun Bitmap.getCircledBitmap(): Bitmap {
