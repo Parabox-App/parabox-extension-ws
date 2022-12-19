@@ -5,7 +5,7 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.MessageCont
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.PlainText
 
 data class EFBText(
-    val text: String
+    val text: String, override val type: Int = EFBMessageContent.TEXT
 ) : EFBMessageContent {
     override fun toMessageContent(context: Context): MessageContent {
         return PlainText(

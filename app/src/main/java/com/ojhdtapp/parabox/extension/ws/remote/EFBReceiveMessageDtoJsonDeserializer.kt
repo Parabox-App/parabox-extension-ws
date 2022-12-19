@@ -78,14 +78,15 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                         EFBMessageContent.TEXT -> {
                             contents.add(
                                 EFBText(
-                                    contentObject.get("text").asString
+                                    text = contentObject.get("text").asString
                                 )
                             )
                         }
                         EFBMessageContent.IMAGE -> {
                             contents.add(
                                 EFBImage(
-                                    contentObject.get("b64String").asString
+                                    b64String = contentObject.get("b64String").asString,
+                                    fileName = contentObject.get("fileName").asString.replace("/", "")
                                 )
                             )
                         }
@@ -93,7 +94,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBAudio(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString
+                                    fileName = contentObject.get("fileName").asString.replace("/", "")
                                 )
                             )
                         }
@@ -101,7 +102,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBVoice(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString
+                                    fileName = contentObject.get("fileName").asString.replace("/", "")
                                 )
                             )
                         }
@@ -109,7 +110,15 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBFile(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString
+                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                )
+                            )
+                        }
+                        EFBMessageContent.ANIMATION -> {
+                            contents.add(
+                                EFBAnimation(
+                                    b64String = contentObject.get("b64String").asString,
+                                    fileName = contentObject.get("fileName").asString.replace("/", "")
                                 )
                             )
                         }

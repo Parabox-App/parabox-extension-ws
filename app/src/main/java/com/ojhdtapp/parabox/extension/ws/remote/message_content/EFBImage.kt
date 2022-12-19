@@ -8,8 +8,9 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.MessageContent
 
 data class EFBImage(
-    val b64String: String
-): EFBMessageContent {
+    val b64String: String, val fileName: String,
+    override val type: Int = EFBMessageContent.IMAGE
+) : EFBMessageContent {
     override fun toMessageContent(context: Context): MessageContent {
         val name = System.currentTimeMillis().toDateAndTimeString()
         val bm = if (b64String.isBlank()) null
@@ -27,7 +28,8 @@ data class EFBImage(
             )
         }
         return Image(
-            uri = uri
+            uri = uri,
+            fileName = fileName
         )
     }
 }

@@ -8,8 +8,8 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.MessageCont
 
 data class EFBVoice(
     val b64String: String,
-    val fileName: String
-) : EFBMessageContent{
+    val fileName: String, override val type: Int = EFBMessageContent.VOICE
+) : EFBMessageContent {
     override fun toMessageContent(context: Context): MessageContent {
         val file = FileUtil.byteStr2File(context, b64String, fileName)
         val uri = FileUtil.getUriOfFile(context, file).apply {

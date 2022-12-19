@@ -19,6 +19,9 @@ import com.ojhdtapp.parabox.extension.ws.data.AppDatabase
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBSendMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.message_content.toEFBMessageContent
+import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Audio
+import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.File
+import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -146,7 +149,7 @@ class ConnService : ParaboxService() {
                                 messageId = dto.messageId!!
                             )
                             when (it) {
-                                is PlainText -> {
+                                is PlainText, is Image, is Audio, is File-> {
                                     JsonUtil.wrapJson(
                                         type = "message",
                                         data = gson.toJson(
