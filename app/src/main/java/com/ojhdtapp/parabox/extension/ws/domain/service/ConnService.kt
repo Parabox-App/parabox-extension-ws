@@ -5,6 +5,7 @@ import android.os.Message
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import com.ojhdtapp.parabox.extension.ws.R
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxKey
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxMetadata
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxService
@@ -59,21 +60,21 @@ class ConnService : ParaboxService() {
                 reconnectTimes = 0
                 updateServiceState(
                     ParaboxKey.STATE_RUNNING,
-                    "WebSocket 已连接"
+                    getString(R.string.ws_connected)
                 )
             }
             1000 -> {
                 reconnectTimes = 0
                 updateServiceState(
                     ParaboxKey.STATE_ERROR,
-                    "密钥验证失败，连接已关闭"
+                    getString(R.string.ws_error_wrong_token)
                 )
 //                            throw Exception("密钥验证失败，连接已关闭")
             }
             1001 -> {
                 updateServiceState(
                     ParaboxKey.STATE_ERROR,
-                    "密钥验证超时"
+                    getString(R.string.ws_error_timeout)
                 )
 //                            throw Exception("密钥验证超时")
                 tryReconnecting()
@@ -81,7 +82,7 @@ class ConnService : ParaboxService() {
             else -> {
                 updateServiceState(
                     ParaboxKey.STATE_ERROR,
-                    "接收到未知错误"
+                    getString(R.string.ws_error_unknown)
                 )
                 tryReconnecting()
             }
@@ -118,7 +119,7 @@ class ConnService : ParaboxService() {
                     reconnectTimes++;
                     updateServiceState(
                         ParaboxKey.STATE_LOADING,
-                        "正在尝试重连"
+                        getString(R.string.reconnecting)
                     )
                     onStartParabox()
                 }
@@ -211,22 +212,22 @@ class ConnService : ParaboxService() {
             val wsUrl = dataStore.data.first()[DataStoreKeys.WS_URL]
             val wsToken = dataStore.data.first()[DataStoreKeys.WS_TOKEN]
             if (wsUrl == null) {
-                updateServiceState(ParaboxKey.STATE_ERROR, "请先设置服务器地址")
+                updateServiceState(ParaboxKey.STATE_ERROR, getString(R.string.error_empty_host))
                 return@launch
             }
             if (wsToken == null) {
-                updateServiceState(ParaboxKey.STATE_ERROR, "请先设置连接密钥")
+                updateServiceState(ParaboxKey.STATE_ERROR, getString(R.string.error_empty_token))
                 return@launch
             }
             updateServiceState(
                 ParaboxKey.STATE_LOADING,
-                "尝试启动 WebSocket 服务"
+                getString(R.string.ws_launching)
             )
             wsClient = object : WebSocketClient(URI.create("ws://$wsUrl/")) {
                 override fun onOpen(handshakedata: ServerHandshake?) {
                     updateServiceState(
                         ParaboxKey.STATE_LOADING,
-                        "WebSocket 连接有效，尝试密钥认证"
+                        getString(R.string.ws_authenticating)
                     )
                     send(wsToken)
                 }
@@ -242,7 +243,7 @@ class ConnService : ParaboxService() {
                             "else" -> {
                                 updateServiceState(
                                     ParaboxKey.STATE_ERROR,
-                                    "WebSocket 服务返回了未知类型的数据"
+                                    getString(R.string.ws_error_unknown_type)
                                 )
                             }
                         }
@@ -262,7 +263,7 @@ class ConnService : ParaboxService() {
                         else -> {
                             updateServiceState(
                                 ParaboxKey.STATE_ERROR,
-                                "WebSocket 连接已断开（${code}）"
+                                getString(R.string.ws_disconnected, code)
                             )
                             tryReconnecting()
                         }
@@ -273,7 +274,7 @@ class ConnService : ParaboxService() {
                     ex?.printStackTrace()
                     updateServiceState(
                         ParaboxKey.STATE_ERROR,
-                        ex?.message ?: "WebSocket 连接发生错误"
+                        ex?.message ?: getString(R.string.ws_error)
                     )
                     tryReconnecting()
                 }

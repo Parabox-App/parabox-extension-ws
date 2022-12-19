@@ -1,7 +1,5 @@
 package com.ojhdtapp.parabox.extension.ws.ui.main
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
@@ -30,7 +28,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ojhdtapp.parabox.extension.ws.MainActivity
 import com.ojhdtapp.parabox.extension.ws.R
 import com.ojhdtapp.parabox.extension.ws.core.util.BrowserUtil
-import com.ojhdtapp.parabox.extension.ws.core.util.launchPlayStore
 import com.ojhdtapp.parabox.extension.ws.domain.util.ServiceStatus
 import com.ojhdtapp.parabox.extension.ws.ui.util.NormalPreference
 import com.ojhdtapp.parabox.extension.ws.ui.util.PreferencesCategory
@@ -110,16 +107,16 @@ fun MainScreen(
                             editPortError = true
                     }
                 }) {
-                    Text(text = "确定")
+                    Text(text = stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditUrlDialog = false }) {
-                    Text(text = "取消")
+                    Text(text = stringResource(R.string.dismiss))
                 }
             },
             title = {
-                Text(text = "服务器地址")
+                Text(text = stringResource(R.string.server_host))
             },
             text = {
                 Row(
@@ -139,7 +136,7 @@ fun MainScreen(
                             tempUrl = it
                         },
                         isError = editUrlError,
-                        label = { Text(text = "地址") },
+                        label = { Text(text = stringResource(R.string.host)) },
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next
                         ),
@@ -161,7 +158,7 @@ fun MainScreen(
                             tempPort = it
                         },
                         isError = editPortError,
-                        label = { Text(text = "端口") },
+                        label = { Text(text = stringResource(R.string.port)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
@@ -193,16 +190,16 @@ fun MainScreen(
                         editTokenError = true
                     }
                 }) {
-                    Text(text = "确定")
+                    Text(text = stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditTokenDialog = false }) {
-                    Text(text = "取消")
+                    Text(text = stringResource(id = R.string.dismiss))
                 }
             },
             title = {
-                Text(text = "连接密钥")
+                Text(text = stringResource(R.string.connection_token))
             },
             text = {
                 Row(
@@ -358,19 +355,21 @@ fun MainScreen(
             }
             item {
                 SwitchPreference(
-                    title = "自动重连",
-                    subtitle = "当连接意外断开时自动重连",
+                    title = stringResource(R.string.auto_reconnect),
+                    subtitle = stringResource(R.string.auto_reconnect_subtitle),
                     checked = viewModel.autoReconnectSwitchFlow.collectAsState(initial = true).value,
                     onCheckedChange = viewModel::setAutoReconnectSwitch
                 )
             }
             item{
-                NormalPreference(title = "服务器地址", subtitle = wsUrl.value.ifBlank { "未设置" }) {
+                NormalPreference(title = stringResource(id = R.string.server_host), subtitle = wsUrl.value.ifBlank { stringResource(
+                                    R.string.not_set) }) {
                     showEditUrlDialog = true
                 }
             }
             item{
-                NormalPreference(title = "连接密钥", subtitle = wsToken.value.ifBlank { "由服务器提供的身份验证密钥" }) {
+                NormalPreference(title = stringResource(id = R.string.connection_token), subtitle = wsToken.value.ifBlank { stringResource(
+                                    R.string.connection_token_subtitle) }) {
                     showEditTokenDialog = true
                 }
             }
@@ -388,8 +387,8 @@ fun MainScreen(
                     )
                 }
                 NormalPreference(
-                    title = "使用指南",
-                    subtitle = "了解扩展运作机制及使用方法"
+                    title = stringResource(R.string.user_guide),
+                    subtitle = stringResource(R.string.user_guide_subtitle)
                 ) {
                     BrowserUtil.launchURL(
                         context,
