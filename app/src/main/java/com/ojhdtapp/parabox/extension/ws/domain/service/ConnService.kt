@@ -24,6 +24,7 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.File
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,6 +47,7 @@ class ConnService : ParaboxService() {
 
     companion object {
         var connectionType = 0
+        var reconnectTimes = 0
     }
 
     private var wsClient: WebSocketClient? = null
@@ -54,12 +56,14 @@ class ConnService : ParaboxService() {
         val jsonObj = JSONObject(json)
         when (jsonObj.getInt("code")) {
             4000 -> {
+                reconnectTimes = 0
                 updateServiceState(
                     ParaboxKey.STATE_RUNNING,
                     "WebSocket 已连接"
                 )
             }
             1000 -> {
+                reconnectTimes = 0
                 updateServiceState(
                     ParaboxKey.STATE_ERROR,
                     "密钥验证失败，连接已关闭"
@@ -72,12 +76,14 @@ class ConnService : ParaboxService() {
                     "密钥验证超时"
                 )
 //                            throw Exception("密钥验证超时")
+                tryReconnecting()
             }
             else -> {
                 updateServiceState(
                     ParaboxKey.STATE_ERROR,
                     "接收到未知错误"
                 )
+                tryReconnecting()
             }
         }
     }
@@ -100,6 +106,24 @@ class ConnService : ParaboxService() {
 
     fun onConvertStatusJson(json: String) {
 
+    }
+
+    fun tryReconnecting() {
+        lifecycleScope.launch {
+            val isAutoReconnectEnabled =
+                dataStore.data.first()[DataStoreKeys.AUTO_RECONNECT] ?: true
+            if (isAutoReconnectEnabled) {
+                if (reconnectTimes < 3) {
+                    delay(4000)
+                    reconnectTimes++;
+                    updateServiceState(
+                        ParaboxKey.STATE_LOADING,
+                        "正在尝试重连"
+                    )
+                    onStartParabox()
+                }
+            }
+        }
     }
 
     override fun customHandleMessage(msg: Message, metadata: ParaboxMetadata) {
@@ -149,7 +173,7 @@ class ConnService : ParaboxService() {
                                 messageId = dto.messageId!!
                             )
                             when (it) {
-                                is PlainText, is Image, is Audio, is File-> {
+                                is PlainText, is Image, is Audio, is File -> {
                                     JsonUtil.wrapJson(
                                         type = "message",
                                         data = gson.toJson(
@@ -231,10 +255,18 @@ class ConnService : ParaboxService() {
                 }
 
                 override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                    updateServiceState(
-                        ParaboxKey.STATE_ERROR,
-                        "WebSocket 连接已断开（${code}）"
-                    )
+                    when (code) {
+                        1000 -> {
+
+                        }
+                        else -> {
+                            updateServiceState(
+                                ParaboxKey.STATE_ERROR,
+                                "WebSocket 连接已断开（${code}）"
+                            )
+                            tryReconnecting()
+                        }
+                    }
                 }
 
                 override fun onError(ex: Exception?) {
@@ -243,6 +275,7 @@ class ConnService : ParaboxService() {
                         ParaboxKey.STATE_ERROR,
                         ex?.message ?: "WebSocket 连接发生错误"
                     )
+                    tryReconnecting()
                 }
             }.also {
                 Log.d("parabox", it.uri.toString())

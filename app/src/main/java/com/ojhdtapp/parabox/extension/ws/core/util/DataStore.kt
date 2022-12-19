@@ -11,6 +11,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 object DataStoreKeys{
     val AUTO_LOGIN = booleanPreferencesKey("auto_login")
+    val AUTO_RECONNECT = booleanPreferencesKey("auto_reconnect")
     val FOREGROUND_SERVICE = booleanPreferencesKey("foreground_service")
     val WS_URL = stringPreferencesKey("ws_url")
     val WS_TOKEN = stringPreferencesKey("ws_token")

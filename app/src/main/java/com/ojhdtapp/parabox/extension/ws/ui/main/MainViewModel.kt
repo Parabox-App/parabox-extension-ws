@@ -70,7 +70,28 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    //Foreground Service
+    // Auto Reconnect Switch
+    val autoReconnectSwitchFlow: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { settings ->
+            settings[DataStoreKeys.AUTO_RECONNECT] ?: true
+        }
+
+    fun setAutoReconnectSwitch(value: Boolean) {
+        viewModelScope.launch {
+            context.dataStore.edit { settings ->
+                settings[DataStoreKeys.AUTO_RECONNECT] = value
+            }
+        }
+    }
+
+    // Foreground Service
     val foregroundServiceSwitchFlow: Flow<Boolean> = context.dataStore.data
         .catch { exception ->
             if (exception is IOException) {

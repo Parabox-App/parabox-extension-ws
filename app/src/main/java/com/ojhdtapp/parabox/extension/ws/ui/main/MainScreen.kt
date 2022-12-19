@@ -45,8 +45,8 @@ fun MainScreen(
 
     val context = LocalContext.current
 
-    val isMainAppInstalled = viewModel.isMainAppInstalled.collectAsState().value
-    val serviceStatus = viewModel.serviceStatusStateFlow.collectAsState().value
+    val isMainAppInstalled by viewModel.isMainAppInstalled.collectAsState()
+    val serviceStatus by viewModel.serviceStatusStateFlow.collectAsState()
 
     // snackBar
     val snackBarHostState = remember { SnackbarHostState() }
@@ -356,6 +356,14 @@ fun MainScreen(
                     onCheckedChange = viewModel::setForegroundServiceSwitch
                 )
             }
+            item {
+                SwitchPreference(
+                    title = "自动重连",
+                    subtitle = "当连接意外断开时自动重连",
+                    checked = viewModel.autoReconnectSwitchFlow.collectAsState(initial = true).value,
+                    onCheckedChange = viewModel::setAutoReconnectSwitch
+                )
+            }
             item{
                 NormalPreference(title = "服务器地址", subtitle = wsUrl.value.ifBlank { "未设置" }) {
                     showEditUrlDialog = true
@@ -373,6 +381,15 @@ fun MainScreen(
                 NormalPreference(
                     title = stringResource(R.string.version),
                     subtitle = viewModel.appVersion
+                ) {
+                    BrowserUtil.launchURL(
+                        context,
+                        "https://github.com/Parabox-App/parabox-extension-ws"
+                    )
+                }
+                NormalPreference(
+                    title = "使用指南",
+                    subtitle = "了解扩展运作机制及使用方法"
                 ) {
                     BrowserUtil.launchURL(
                         context,
