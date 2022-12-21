@@ -24,11 +24,8 @@ import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Audio
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.File
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
@@ -49,6 +46,7 @@ class ConnService : ParaboxService() {
     companion object {
         var connectionType = 0
         var reconnectTimes = 0
+        var reconnectJob: Job? = null
     }
 
     private var wsClient: WebSocketClient? = null
@@ -110,7 +108,8 @@ class ConnService : ParaboxService() {
     }
 
     fun tryReconnecting() {
-        lifecycleScope.launch {
+        reconnectJob?.cancel()
+        reconnectJob = lifecycleScope.launch {
             val isAutoReconnectEnabled =
                 dataStore.data.first()[DataStoreKeys.AUTO_RECONNECT] ?: true
             if (isAutoReconnectEnabled) {
