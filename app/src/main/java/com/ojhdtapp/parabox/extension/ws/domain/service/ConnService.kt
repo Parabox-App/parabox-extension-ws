@@ -20,6 +20,7 @@ import com.ojhdtapp.parabox.extension.ws.data.AppDatabase
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBSendMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.message_content.toEFBMessageContent
+import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxResult
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Audio
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.File
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
@@ -98,6 +99,16 @@ class ConnService : ParaboxService() {
                     dto.toReceiveMessageDto(baseContext, chatMappingId)
                 ) {
                     Log.d("parabox", "Message data payload: $it")
+                    if (it is ParaboxResult.Success) {
+                        JsonUtil.wrapJson(
+                            type = "response",
+                            data = "\"${dto.slaveMsgId}\""
+                        ).let {
+                            wsClient?.run {
+                                send(it)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -146,11 +157,26 @@ class ConnService : ParaboxService() {
     }
 
     override suspend fun onRecallMessage(messageId: Long): Boolean {
-        return false
+        return JsonUtil.wrapJson(
+            type = "recall",
+            data = "$messageId"
+        ).let {
+            wsClient?.run {
+                send(it)
+                true
+            } ?: false
+        }
     }
 
     override fun onRefreshMessage() {
-
+        JsonUtil.wrapJson(
+            type = "refresh",
+            data = "\"${System.currentTimeMillis()}\""
+        ).let {
+            wsClient?.run {
+                send(it)
+            }
+        }
     }
 
     override suspend fun onSendMessage(dto: SendMessageDto): Boolean {
