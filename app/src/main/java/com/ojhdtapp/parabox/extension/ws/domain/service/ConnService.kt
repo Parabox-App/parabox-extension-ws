@@ -6,16 +6,13 @@ import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.ojhdtapp.parabox.extension.ws.R
+import com.ojhdtapp.parabox.extension.ws.core.util.*
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxKey
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxMetadata
 import com.ojhdtapp.paraboxdevelopmentkit.connector.ParaboxService
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.ReceiveMessageDto
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.SendMessageDto
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.PlainText
-import com.ojhdtapp.parabox.extension.ws.core.util.DataStoreKeys
-import com.ojhdtapp.parabox.extension.ws.core.util.JsonUtil
-import com.ojhdtapp.parabox.extension.ws.core.util.NotificationUtil
-import com.ojhdtapp.parabox.extension.ws.core.util.dataStore
 import com.ojhdtapp.parabox.extension.ws.data.AppDatabase
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBSendMessageDto
@@ -95,12 +92,12 @@ class ConnService : ParaboxService() {
                 val chatMappingId = appDatabase.chatMappingDao()
                     .getChatMappingBySlaveOriginUid(dto.slaveOriginUid)?.id
                     ?: appDatabase.chatMappingDao().insertChatMapping(dto.getChatMapping())
-                receiveMessage(
-                    dto.toReceiveMessageDto(baseContext, chatMappingId)
-                ) {
+                val receiveMessageDto = dto.toReceiveMessageDto(baseContext, chatMappingId)
+                receiveMessage(receiveMessageDto) {
                     Log.d("parabox", "Message data payload: $it")
                     if (it is ParaboxResult.Success) {
                         try {
+                            FileUtil.clearCache(baseContext)
                             JsonUtil.wrapJson(
                                 type = "response",
                                 data = "\"${dto.slaveMsgId}\""

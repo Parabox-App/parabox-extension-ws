@@ -95,6 +95,32 @@ object FileUtil {
         }
     }
 
+    // clean cache, keep thirty latest files
+    fun clearCache(context: Context) {
+        val cacheBmFir = File(context.externalCacheDir, "bm")
+        val cacheFileFir = File(context.externalCacheDir, "file")
+
+        val cacheBmFiles = cacheBmFir.listFiles()
+        if (cacheBmFiles != null && cacheBmFiles.size > 30) {
+            val sortedFiles = cacheBmFiles.sortedBy { it.lastModified() }
+            sortedFiles.forEachIndexed { index, file ->
+                if (index < sortedFiles.size - 30) {
+                    file.delete()
+                }
+            }
+        }
+
+        val cacheFileFiles = cacheFileFir.listFiles()
+        if (cacheFileFiles != null && cacheFileFiles.size > 5) {
+            val sortedFiles = cacheFileFiles.sortedBy { it.lastModified() }
+            sortedFiles.forEachIndexed { index, file ->
+                if (index < sortedFiles.size - 5) {
+                    file.delete()
+                }
+            }
+        }
+    }
+
     fun Long.toFormattedDate(): String {
         return SimpleDateFormat("M'月'd'日'", Locale.getDefault()).format(Date(this))
     }
