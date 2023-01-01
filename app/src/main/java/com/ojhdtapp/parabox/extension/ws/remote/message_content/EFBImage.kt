@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil
 import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil.toDateAndTimeString
+import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil.toSafeFilename
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.Image
 import com.ojhdtapp.paraboxdevelopmentkit.messagedto.message_content.MessageContent
 
@@ -15,7 +16,7 @@ data class EFBImage(
         val name = System.currentTimeMillis().toDateAndTimeString()
         val bm = if (b64String.isBlank()) null
         else FileUtil.byteStr2Bitmap(b64String)
-        val uri = bm?.let { FileUtil.getUriFromBitmap(context, it, name) }.apply {
+        val uri = bm?.let { FileUtil.getUriFromBitmap(context, it, name.toSafeFilename()) }.apply {
             context.grantUriPermission(
                 "com.ojhdtapp.parabox",
                 this,

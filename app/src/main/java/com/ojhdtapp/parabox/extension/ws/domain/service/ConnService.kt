@@ -100,13 +100,17 @@ class ConnService : ParaboxService() {
                 ) {
                     Log.d("parabox", "Message data payload: $it")
                     if (it is ParaboxResult.Success) {
-                        JsonUtil.wrapJson(
-                            type = "response",
-                            data = "\"${dto.slaveMsgId}\""
-                        ).let {
-                            wsClient?.run {
-                                send(it)
+                        try {
+                            JsonUtil.wrapJson(
+                                type = "response",
+                                data = "\"${dto.slaveMsgId}\""
+                            ).let {
+                                wsClient?.run {
+                                    send(it)
+                                }
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -161,10 +165,15 @@ class ConnService : ParaboxService() {
             type = "recall",
             data = "$messageId"
         ).let {
-            wsClient?.run {
-                send(it)
-                true
-            } ?: false
+            try {
+                wsClient?.run {
+                    send(it)
+                    true
+                } ?: false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
         }
     }
 
@@ -173,8 +182,12 @@ class ConnService : ParaboxService() {
             type = "refresh",
             data = "\"${System.currentTimeMillis()}\""
         ).let {
-            wsClient?.run {
-                send(it)
+            try {
+                wsClient?.run {
+                    send(it)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil
 import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil.getCircledBitmap
+import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil.toSafeFilename
 import com.ojhdtapp.parabox.extension.ws.domain.model.ChatMapping
 import com.ojhdtapp.parabox.extension.ws.domain.service.ConnService
 import com.ojhdtapp.parabox.extension.ws.remote.message_content.EFBMessageContent
@@ -51,7 +52,7 @@ data class EFBProfile(
     fun toProfile(context: Context): Profile {
         val bm = if (avatarB64Str.isNullOrBlank()) null
         else FileUtil.byteStr2Bitmap(avatarB64Str)?.getCircledBitmap()
-        val uri = bm?.let { FileUtil.getUriFromBitmap(context, it, name) }.apply {
+        val uri = bm?.let { FileUtil.getUriFromBitmap(context, it, name.toSafeFilename()) }.apply {
             context.grantUriPermission(
                 "com.ojhdtapp.parabox",
                 this,

@@ -19,8 +19,12 @@ import kotlin.math.roundToInt
 
 
 object FileUtil {
-    fun uri2ByteStr(context: Context, uri: Uri): String?{
-        with(context){
+    fun String.toSafeFilename(): String{
+        return this.replace("[\\\\/:*?\"<>|]".toRegex(), "_")
+    }
+
+    fun uri2ByteStr(context: Context, uri: Uri): String? {
+        with(context) {
             val inputPFD: ParcelFileDescriptor? =
                 contentResolver.openFileDescriptor(uri, "r")
             val fd = inputPFD!!.fileDescriptor
@@ -73,11 +77,9 @@ object FileUtil {
         val bytes = ByteArrayOutputStream()
         bm.compress(Bitmap.CompressFormat.PNG, 100, bytes)
         val bitmapData = bytes.toByteArray()
-
-        val fileOutPut = FileOutputStream(tempFile)
-        fileOutPut.write(bitmapData)
-        fileOutPut.flush()
-        fileOutPut.close()
+        FileOutputStream(tempFile).use { fos ->
+            fos.write(bitmapData)
+        }
         return getUriOfFile(context, tempFile)
     }
 
@@ -104,13 +106,13 @@ object FileUtil {
         ).format(Date(this)) + this.toString().substring(11)
     }
 
-    fun Long.toMSString(): String{
+    fun Long.toMSString(): String {
         val df = DecimalFormat("#").apply {
             roundingMode = RoundingMode.DOWN
         }
         val totalSecond = (this / 1000).toFloat().roundToInt()
         val minute = df.format(totalSecond / 60)
         val second = totalSecond % 60
-        return "${if(totalSecond > 60) minute.plus("′") else ""}${second}“"
+        return "${if (totalSecond > 60) minute.plus("′") else ""}${second}“"
     }
 }

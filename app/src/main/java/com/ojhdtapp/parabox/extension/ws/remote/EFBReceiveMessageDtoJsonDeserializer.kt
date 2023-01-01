@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.ojhdtapp.parabox.extension.ws.core.util.FileUtil.toSafeFilename
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBProfile
 import com.ojhdtapp.parabox.extension.ws.remote.dto.EFBReceiveMessageDto
 import com.ojhdtapp.parabox.extension.ws.remote.message_content.*
@@ -86,7 +87,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBImage(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                    fileName = contentObject.get("fileName").asString.toSafeFilename()
                                 )
                             )
                         }
@@ -94,7 +95,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBAudio(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                    fileName = contentObject.get("fileName").asString.toSafeFilename()
                                 )
                             )
                         }
@@ -102,7 +103,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBVoice(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                    fileName = contentObject.get("fileName").asString.toSafeFilename()
                                 )
                             )
                         }
@@ -110,7 +111,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBFile(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                    fileName = contentObject.get("fileName").asString.toSafeFilename()
                                 )
                             )
                         }
@@ -118,7 +119,7 @@ class EFBReceiveMessageDtoJsonDeserializer : JsonDeserializer<EFBReceiveMessageD
                             contents.add(
                                 EFBAnimation(
                                     b64String = contentObject.get("b64String").asString,
-                                    fileName = contentObject.get("fileName").asString.replace("/", "")
+                                    fileName = contentObject.get("fileName").asString.toSafeFilename()
                                 )
                             )
                         }
