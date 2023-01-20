@@ -24,7 +24,6 @@ data class EFBReceiveMessageDto(
 ) {
     fun getChatMapping(): ChatMapping = ChatMapping(
         slaveOriginUid = slaveOriginUid,
-        slaveMsgId = slaveMsgId
     )
 
     fun toReceiveMessageDto(context: Context, chatMappingId: Long): ReceiveMessageDto {

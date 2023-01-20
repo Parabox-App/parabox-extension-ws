@@ -6,6 +6,5 @@ data class EFBSendMessageDto(
     val content: EFBMessageContent,
     val timestamp: Long,
     val slaveOriginUid: String,
-    val slaveMsgId: String,
     val messageId: Long
 )

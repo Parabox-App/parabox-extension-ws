@@ -205,7 +205,6 @@ class ConnService : ParaboxService() {
                                 content = it.toEFBMessageContent(baseContext),
                                 timestamp = dto.timestamp,
                                 slaveOriginUid = chatMapping.slaveOriginUid,
-                                slaveMsgId = chatMapping.slaveMsgId,
                                 messageId = dto.messageId!!
                             )
                             when (it) {
